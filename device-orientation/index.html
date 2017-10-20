@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="initial-scale=1.0,user-scalable=no,minimum-scale=1.0, maximum-scale=1.0,width=device-width">
+    <title>Document</title>
+    <style>
+    .orientation {
+        width: 100px;
+        margin: 20px;
+        height: 100px;
+        display: inline-block;
+        background-color: #abcdef;
+        position: relative;
+     }
+    </style>
+</head>
+<body>
+    <h1>这是一个小demo</h1>
+    <p>z:<span id="info-alpha"></span></p>
+    <p>x:<span id="info-beta"></span></p>
+    <p>y:<span id="info-gamma"></span></p>
+    <div class="orientation orientation-x">
+        <p>这是一个X</p>
+    </div>
+    <div class="orientation orientation-y">
+        <p>这是一个Y</p>
+    </div>
+    <div class="orientation orientation-z">
+        <p>这是一个Z</p>
+    </div>
+    <p id="info-motion"></p>
+</body>
+<script type="text/javascript" >
+    var info_z = document.getElementById('info-alpha');
+    var info_x = document.getElementById('info-beta');
+    var info_y = document.getElementById('info-gamma');
+    var info_motion = document.getElementById('info-motion');
+
+    var orientation_x = document.querySelector('.orientation-x');
+    var orientation_y = document.querySelector('.orientation-y');
+    var orientation_z = document.querySelector('.orientation-z');
+
+    if(window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleOrientation);
+    }
+    else {
+        orientation.innerHTML = '当前浏览器不支持DeviceOrientationEvent';
+    }
+    function handleOrientation(event) {
+        console.log(event);
+        var x = event.beta;
+        var y = event.gamma;
+        var z = event.alpha;
+        info_z.innerHTML = parseInt(z);
+        info_x.innerHTML = parseInt(x);
+        info_y.innerHTML = parseInt(y);
+        console.log('rotateY(' + y + 180 + 'deg)');
+        orientation_x.style.transform  = 'rotateX(' + x + 180 + 'deg)';
+        orientation_y.style.transform  = 'rotateY(' + y + 180 + 'deg)';
+        orientation_z.style.transform  = 'rotateZ(' + z + 'deg)';
+    }
+
+    if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', shakeEventHandler, false);
+    } else {
+        alert('当前浏览器不支持DeviceMotionEvent');
+    }
+
+    var THRESHOLD = 1000;
+    var pre_x = pre_y = pre_z = cur_x = cur_y = cur_z = 0;
+    var preTime = 0;
+    var count = 0;
+    function shakeEventHandler(event) {
+        console.log(event)
+        var acceleration =event.accelerationIncludingGravity;
+        cur_x = acceleration.x;
+        cur_y = acceleration.y;
+        cur_z = acceleration.z;
+        console.log(cur_x,cur_y,cur_z);
+        if(Math.abs(cur_x-pre_x) > 30 || Math.abs(cur_y-pre_y) > 30 || Math.abs(cur_z-pre_z) > 30) {
+            //简单的摇一摇触发代码
+            info_motion.innerHTML = ++count;
+        }
+        pre_x = cur_x;
+        pre_y = cur_y;
+        pre_z = cur_z;
+    }
+</script>
+</html>
