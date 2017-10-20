@@ -1,0 +1,210 @@
+<!DOCTYPEhtml>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Example</title>
+    <script type="text/javascript" src="https://cdn.bootcss.com/three.js/r83/three.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+
+    <script src="https://cdn.bootcss.com/stats.js/r17/Stats.js"></script>
+    <script src="https://cdn.bootcss.com/dat-gui/0.6.5/dat.gui.min.js"></script>
+    <style>
+        body {
+            /*设置页面的样式*/
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #btn {
+            height: 50px;
+            width: 100px;
+            margin: 0 auto;
+            position: absolute;
+            top: 50px;
+        }
+
+        #pointer-lock-element {
+            height: 100%;
+            min-height: 500px;
+            width: 100%;
+            background-image: url('./res/bg.jpg');
+            z-index: 0;
+        }
+
+        #WebGL-output {
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="btn" onclick="lockPointer();">锁住它!</button>
+    <div id="pointer-lock-element">
+        <div id="WebGL-output"></div>
+        <div id="Stats-output"></div>
+    </div>
+
+
+    <script>
+        // 我们将要使之全屏并指针锁定的元素。
+        var elem = $('#pointer-lock-element');
+
+        function fullscreenChange() {
+            if (document.webkitFullscreenElement === elem ||
+                document.mozFullscreenElement === elem ||
+                document.mozFullScreenElement === elem) {
+                elem.requestPointerLock = elem.requestPointerLock ||
+                    elem.mozRequestPointerLock ||
+                    elem.webkitRequestPointerLock;
+                elem.requestPointerLock();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', fullscreenChange, false);
+        document.addEventListener('mozfullscreenchange', fullscreenChange, false);
+        document.addEventListener('webkitfullscreenchange', fullscreenChange, false);
+
+        function pointerLockChange() {
+            if (document.mozPointerLockElement === elem ||
+                document.webkitPointerLockElement === elem) {
+                console.log("指针锁定成功了。");
+            } else {
+                console.log("指针锁定已丢失。");
+            }
+        }
+
+        document.addEventListener('pointerlockchange', pointerLockChange, false);
+        document.addEventListener('mozpointerlockchange', pointerLockChange, false);
+        document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
+
+        function pointerLockError() {
+            console.log("锁定指针时出错。");
+        }
+
+        document.addEventListener('pointerlockerror', pointerLockError, false);
+        document.addEventListener('mozpointerlockerror', pointerLockError, false);
+        document.addEventListener('webkitpointerlockerror', pointerLockError, false);
+
+        function lockPointer() {
+            elem = document.getElementById("pointer-lock-element");
+            elem.requestFullscreen = elem.requestFullscreen ||
+                elem.mozRequestFullscreen ||
+                elem.mozRequestFullScreen ||
+                elem.webkitRequestFullscreen;
+            elem.requestFullscreen();
+        }
+
+        function initStats() {
+            var stats = new Stats();
+            stats.setMode(0);
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+            return stats;
+        }
+        $(function () {
+            var stats = initStats();
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            var axes = new THREE.AxisHelper(20);
+            scene.add(axes);
+
+            var planeGeometry = new THREE.PlaneGeometry(60, 20, 1, 1);
+            var planeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                opacity: 0.1
+            });
+            var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+            plane.rotation.x = -0.5 * Math.PI;
+            plane.position.x = 15;
+            plane.position.y = 0;
+            plane.position.z = 0;
+
+            scene.add(plane);
+
+            var cubeGeometry = new THREE.CubeGeometry(4, 4, 4);
+            var cubeMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                wireframe: true,
+            });
+            var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+            cube.position.x = -4;
+            cube.position.y = 3;
+            cube.position.z = 0;
+
+            scene.add(cube);
+
+            // var sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
+            // var sphereMaterial = new THREE.MeshBasicMaterial({
+            //     color: 0x7777ff,
+            //     wireframe: true
+            // });
+            // var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+            // sphere.position.x = 20;
+            // sphere.position.y = 4;
+            // sphere.position.z = 2;
+
+            // scene.add(sphere);
+
+            camera.position.x = -30;
+            camera.position.y = 40;
+            camera.position.z = 30;
+            camera.lookAt(scene.position);
+            $("#WebGL-output").append(renderer.domElement);
+            renderer.render(scene, camera);
+            // var step = 0;
+
+            var controls = new function () {    
+                this.rotationSpeed = 0.01;    
+                this.bouncingSpeed = 0.01;
+            };
+            var gui = new dat.GUI();
+            gui.add(controls, 'rotationSpeed', 0, 0.5);
+            gui.add(controls, 'bouncingSpeed', 0, 0.5);
+
+            document.addEventListener("mousemove", function (e) {
+                var movementX = e.movementX ||
+                    e.mozMovementX ||
+                    e.webkitMovementX ||
+                    0,
+                    movementY = e.movementY ||
+                    e.mozMovementY ||
+                    e.webkitMovementY ||
+                    0;
+                console.log(e)
+                // 打印鼠标移动的增量值。
+                console.log("movementX=" + movementX, "movementY=" + movementY);
+                renderScene(movementX, movementY);
+
+            }, false);
+
+            function renderScene(x, y) {
+                stats.update()
+                console.log(controls.rotationSpeed);
+                cube.rotation.x += x / 100 + controls.rotationSpeed;
+                cube.rotation.y += y / 100 + controls.rotationSpeed;
+                // cube.rotation.z += controls.rotationSpeed;      //animate sphere
+                    
+                // step += controls.bouncingSpeed;    
+                // sphere.position.x = 20 + x/10;    
+                // sphere.position.y = 2 + y/10;     
+                // requestAnimationFrame(renderScene);    
+                renderer.render(scene, camera);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
